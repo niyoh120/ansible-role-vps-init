@@ -1,0 +1,50 @@
+# sshd
+
+- name: Set authorized key taken from file
+  authorized_key:
+    user: "{{ ansible_user }}"
+    state: present
+    key: "{{ item }}"
+    exclusive: true
+  with_file:
+    - "{{ ssh_pub_key_path }}"
+
+- name: Ensure correct ssh directory permissions
+  file:
+    path: "~/.ssh"
+    state: directory
+    mode: 0700
+  become: true
+
+- name: Ensure correct authorized_keys permissions
+  file:
+    path: "~/.ssh/authorized_keys"
+    state: touch
+    mode: 0600
+  become: true
+
+- name: Ensure PubkeyAuthentication is set to yes
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^PubkeyAuthentication"
+    line: "PubkeyAuthentication yes"
+    state: present
+
+- name: Ensure AuthorizedKeysFile is set correctly
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^AuthorizedKeysFile"
+    line: "AuthorizedKeysFile .ssh/authorized_keys"
+    state: present
+
+- name: Disable password authentication
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^PasswordAuthentication"
+    line: "PasswordAuthentication no"
+    state: present
+
+- name: Reload ssh service
+  service:
+    name: ssh
+    state: reloaded

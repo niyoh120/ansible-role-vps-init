@@ -1,0 +1,7 @@
+---
+# handlers file for vps-init-ansible
+
+- name: reload ssh
+  service:
+    name: ssh
+    state: reloaded
