@@ -2,4 +2,4 @@
 - hosts: localhost
   remote_user: root
   roles:
-    - vps-init-ansible
+    - ansible-role-vps-init
