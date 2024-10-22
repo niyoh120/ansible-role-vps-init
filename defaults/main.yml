@@ -24,3 +24,7 @@ default_pkgs:
   - iproute2
 
 ssh_pub_key_path: "{{ inventory_dir }}/files/ssh/id_rsa.pub"
+
+enable_root_login: false
+
+disable_password_login: true

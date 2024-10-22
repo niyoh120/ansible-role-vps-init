@@ -4,7 +4,7 @@
     value: "{{ item.value }}"
     state: present
     sysctl_set: yes # Ensure sysctl settings persist after reboot
-    sysctl_file: "99-vps-init-ansible.conf"
+    sysctl_file: "99-ansible-vps-init.conf"
     reload: yes
   with_dict: "{{ sysctl_config }}"
   tags:

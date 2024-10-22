@@ -5,23 +5,29 @@
     user: "{{ ansible_user }}"
     state: present
     key: "{{ item }}"
-    exclusive: true
   with_file:
     - "{{ ssh_pub_key_path }}"
+
+- name: Set authorized key taken from file to root
+  authorized_key:
+    user: root
+    state: present
+    key: "{{ item }}"
+  with_file:
+    - "{{ ssh_pub_key_path }}"
+  when: enable_root_login
 
 - name: Ensure correct ssh directory permissions
   file:
     path: "~/.ssh"
     state: directory
     mode: 0700
-  become: true
 
 - name: Ensure correct authorized_keys permissions
   file:
     path: "~/.ssh/authorized_keys"
     state: touch
     mode: 0600
-  become: true
 
 - name: Ensure PubkeyAuthentication is set to yes
   lineinfile:
@@ -43,6 +49,15 @@
     regexp: "^PasswordAuthentication"
     line: "PasswordAuthentication no"
     state: present
+  when: disable_password_login
+
+- name: Enable root login
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^PermitRootLogin"
+    line: "PermitRootLogin yes"
+    state: present
+  when: enable_root_login
 
 - name: Reload ssh service
   service:
