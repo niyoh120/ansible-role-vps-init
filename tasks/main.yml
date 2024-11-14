@@ -3,7 +3,7 @@
 
 - include_tasks: hostname.yaml
 - include_tasks: locale.yaml
-- include_tasks: timezone.yaml
+- include_tasks: time.yaml
 - include_tasks: sysctl.yaml
 - include_tasks: pkgs.yaml
 - include_tasks: sshd.yaml
