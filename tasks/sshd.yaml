@@ -4,30 +4,18 @@
   authorized_key:
     user: "{{ ansible_user }}"
     state: present
-    key: "{{ item }}"
-  with_file:
-    - "{{ ssh_pub_key_path }}"
+    key: "{{ lookup('file', item) }}"
+  with_fileglob:
+    - "{{ ssh_pub_key_path }}/*.pub"
 
 - name: Set authorized key taken from file to root
   authorized_key:
     user: root
     state: present
-    key: "{{ item }}"
-  with_file:
-    - "{{ ssh_pub_key_path }}"
-  when: enable_root_login
-
-- name: Ensure correct ssh directory permissions
-  file:
-    path: "~/.ssh"
-    state: directory
-    mode: 0700
-
-- name: Ensure correct authorized_keys permissions
-  file:
-    path: "~/.ssh/authorized_keys"
-    state: touch
-    mode: 0600
+    key: "{{ lookup('file', item) }}"
+  with_fileglob:
+    - "{{ inventory_dir }}/*.pub"
+  when: enable_root_login and ansible_user != "root"
 
 - name: Ensure PubkeyAuthentication is set to yes
   lineinfile:
@@ -51,13 +39,29 @@
     state: present
   when: disable_password_login
 
+- name: Enable password authentication
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^PasswordAuthentication"
+    line: "PasswordAuthentication yes"
+    state: present
+  when: not disable_password_login
+
 - name: Enable root login
   lineinfile:
     path: /etc/ssh/sshd_config
     regexp: "^PermitRootLogin"
     line: "PermitRootLogin yes"
     state: present
-  when: enable_root_login
+  when: enable_root_login or ansible_user == "root"
+
+- name: Disable root login
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^PermitRootLogin"
+    line: "PermitRootLogin no"
+    state: present
+  when: not enable_root_login and ansible_user != "root"
 
 - name: Reload ssh service
   service:
